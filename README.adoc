@@ -1,3 +1,5 @@
+image:https://img.shields.io/clojars/v/space.matterandvoid/eql.svg[link=https://clojars.org/space.matterandvoid/eql]
+
 Extensible Data Notation Query Language
 
 EQL is a declarative way to make hierarchical selections of information about data.
