@@ -108,48 +108,48 @@
 (s/def :edn-query-language.ast/type (set (keys (methods node-type))))
 (s/def :edn-query-language.ast/node (s/multi-spec node-type :type))
 
-(s/fdef query->ast
+(s/fdef eql/query->ast
   :args (s/cat :query (s/nilable ::eql/query))
   :ret :edn-query-language.ast/root)
 
-(s/fdef query->ast1
+(s/fdef eql/query->ast1
   :args (s/cat :query ::eql/query)
   :ret (s/nilable :edn-query-language.ast/node))
 
-(s/fdef ast->query
+(s/fdef eql/ast->query
   :args (s/cat :ast :edn-query-language.ast/node)
   :ret ::eql/query)
 
-(s/fdef ident?
+(s/fdef eql/ident?
   :args (s/cat :x any?)
   :ret boolean?)
 
-(s/fdef focus-subquery
+(s/fdef eql/focus-subquery
   :args (s/cat :query ::eql/query :sub-query ::eql/query)
   :ret ::eql/query)
 
-(s/fdef transduce-children
+(s/fdef eql/transduce-children
   :args (s/cat :xform fn? :node :edn-query-language.ast/node)
   :ret :edn-query-language.ast/node)
 
-(s/fdef union-children?
+(s/fdef eql/union-children?
   :args (s/cat :ast :edn-query-language.ast/node)
   :ret boolean?)
 
-(s/fdef update-property-param
+(s/fdef eql/update-property-param
   :args (s/cat :x (s/or :property ::eql/property
                     :expr ::eql/param-expr)
           :f fn?
           :args (s/* any?))
   :ret ::eql/param-expr)
 
-(s/fdef merge-asts
+(s/fdef eql/merge-asts
   :args (s/or
           :init (s/cat)
           :completion (s/cat :q :edn-query-language.ast/node)
           :step (s/cat :qa :edn-query-language.ast/node, :qb :edn-query-language.ast/node))
   :ret (s/nilable :edn-query-language.ast/node))
 
-(s/fdef merge-queries
+(s/fdef eql/merge-queries
   :args (s/cat :qa (s/nilable ::eql/query), :qb (s/nilable ::eql/query))
   :ret (s/nilable ::eql/query))
