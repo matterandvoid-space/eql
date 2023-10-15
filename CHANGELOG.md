@@ -1,5 +1,8 @@
 # Changelog
 
+## [2023.10.15]
+- `remove specs from core` remove specs from core namespace - moved to separate `specs` namespace for those that need them.
+
 ## [2021.07.18]
 - `merge-ast` support arities 0 and 1 to work as a reducing function
 
