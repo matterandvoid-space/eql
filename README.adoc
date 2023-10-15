@@ -1,35 +1,10 @@
-:source-highlighter: coderay
-:source-language: clojure
-:toc:
-:toc-placement: preamble
-:sectlinks:
-:sectanchors:
-:sectnums:
-ifdef::env-github,env-cljdoc[]
-:tip-caption: :bulb:
-:note-caption: :information_source:
-:important-caption: :heavy_exclamation_mark:
-:caution-caption: :fire:
-:warning-caption: :warning:
-endif::[]
+Extensible Data Notation Query Language
 
-image:./assets/eql_logo_github.png[]
+EQL is a declarative way to make hierarchical selections of information about data.
 
-image:https://img.shields.io/clojars/v/edn-query-language/eql.svg[link=https://clojars.org/edn-query-language/eql]
-image:https://cljdoc.xyz/badge/edn-query-language/eql[link=https://cljdoc.xyz/d/edn-query-language/eql/CURRENT]
-image:https://circleci.com/gh/edn-query-language/eql/tree/master.svg?style=svg["CircleCI", link="https://circleci.com/gh/edn-query-language/eql/tree/master"]
+It is a query language with no semantics.
 
-This repository contains a specification for EQL and a support library to help the development
-of tools using it.
-
-== What is EQL?
-
-EQL is a declarative way to make hierarchical (and possibly nested) selections of information about data requirements.
-
-EQL doesn't have its own language; it uses EDN to express the request, taking advantage of
-the rich set of primitives provided by it.
-
-==== EQL for selections
+# Selections
 
 An easy way to get started is to think of a map and try to describe its shape. For example:
 
@@ -731,8 +706,14 @@ Check the complete API docs at link:https://cljdoc.org/d/edn-query-language/eql/
 //EQL is a derived language, it's initial syntax was defined by link:https://docs.datomic.com/pull.html[Datomic Pull Syntax], later extended
 //by link:https://github.com/omcljs/om[Om.next].
 
-//== Projects using EQL
-//
-//- link:http://fulcro.fulcrologic.com/[Fulcro]
-//- link:https://github.com/wilkerlucio/pathom[Pathom]
-//- link:https://github.com/walkable-server/walkable[Walkable]
+
+=== Build and deploy
+
+[source,bash]
+----
+clojure -T:build test
+
+clojure -T:build ci
+
+CLOJARS_USERNAME=$username CLOJARS_PASSWORD=$clojars_token clojure -T:build deploy
+----
