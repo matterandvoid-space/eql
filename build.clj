@@ -4,10 +4,61 @@
   (:require
     [clojure.string :as str]
     [clojure.tools.build.api :as b]
-    [deps-deploy.deps-deploy :as dd]))
+    [deps-deploy.deps-deploy :as dd]
+    [clojure.data.xml :as xml]
+    [clojure.java.io :as io]
+    [clojure.string :as str]))
+
+(defn mk-dep [g a v]
+  (xml/sexp-as-element
+    [(xml/qname "http://maven.apache.org/POM/4.0.0" "dependency")
+     [(xml/qname "http://maven.apache.org/POM/4.0.0" "groupId") g]
+     [(xml/qname "http://maven.apache.org/POM/4.0.0" "artifactId") a]
+     [(xml/qname "http://maven.apache.org/POM/4.0.0" "version") v]
+     [(xml/qname "http://maven.apache.org/POM/4.0.0" "scope") "provided"]]))
+
+(def provided-deps
+  [(mk-dep "org.clojure" "clojure" "1.9.0")
+   (mk-dep "org.clojure" "clojurescript" "1.10.339")
+   (mk-dep "org.clojure" "test.check" "1.0.0")])
+
+(defn read-xml-file [file]
+  (with-open [rdr (io/reader file)]
+    (xml/parse rdr)))
+
+(defn write-xml-file [file xml-data]
+  (with-open [wrtr (io/writer file)]
+    (xml/emit xml-data wrtr)))
+
+(defn find-and-update-dependencies [content deps]
+  (map (fn [elem]
+         (if (= ((fnil name "") (:tag elem)) "dependencies")
+           (assoc elem :content deps
+             ;; if you don't want to overwrite use update:  (comp vec concat) deps
+             )
+           elem))
+    content))
+
+(defn insert-dependencies [pom-file deps]
+  (let [pom-data (read-xml-file pom-file)
+        updated-content (find-and-update-dependencies (:content pom-data) deps)
+        updated-pom-data (assoc pom-data :content updated-content)]
+    updated-pom-data))
+
+(defn ensure-dirs-exist [file-path]
+  (let [dir (io/file file-path)]
+    (.mkdirs (.getParentFile dir))))
+
+
+(comment
+  (insert-dependencies "pom-template.xml" provided-deps)
+
+  (write-xml-file "new-pom.xml"
+    (insert-dependencies "pom-template.xml" provided-deps))
+  )
 
 (def lib (quote space.matterandvoid/eql))
-(def version (str/replace (str (LocalDate/now)) "-" "."))
+(def version (str (str/replace (str (LocalDate/now)) "-" ".") "-SNAPSHOT"))
 (def class-dir "target/classes")
 
 (defn test "Run all the tests." [opts]
@@ -44,18 +95,22 @@
     :class-dir class-dir
     :target "target"
     :src-dirs ["src"]
+    ;:src-pom "pom-template.xml"
     :pom-data (pom-template version)))
 
 (defn ci "Run the CI pipeline of tests (and build the JAR)." [opts]
   (test opts)
   (b/delete {:path "target"})
   (let [opts (jar-opts opts)]
-    (println "\nWriting pom.xml...")
+    (println "\nWriting pom.xml.")
     (b/write-pom opts)
-    (println "\nCopying source...")
+    (println "\nCopying source.")
     (b/copy-dir {:src-dirs ["resources" "src"] :target-dir class-dir})
-    (println "\nBuilding JAR..." (:jar-file opts))
-    (b/jar opts))
+    (println "\nBuilding JAR." (:jar-file opts))
+    (b/jar opts)
+    (println "\nWriting pom.xml with provided deps.")
+    (write-xml-file "target/classes/META-INF/maven/space.matterandvoid/eql/pom.xml"
+      (insert-dependencies "target/classes/META-INF/maven/space.matterandvoid/eql/pom.xml" provided-deps)))
   opts)
 
 (defn install "Install the JAR locally." [opts]
