@@ -58,7 +58,7 @@
   )
 
 (def lib (quote space.matterandvoid/eql))
-(def version (str (str/replace (str (LocalDate/now)) "-" ".") "-SNAPSHOT"))
+(def version (str (str/replace (str (LocalDate/now)) "-" ".") "-SNAPSHOT2"))
 (def class-dir "target/classes")
 
 (defn test "Run all the tests." [opts]
