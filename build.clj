@@ -4,23 +4,25 @@
   (:require
     [clojure.string :as str]
     [clojure.tools.build.api :as b]
-    [deps-deploy.deps-deploy :as dd]
     [clojure.data.xml :as xml]
+    [clojure.edn :as edn]
     [clojure.java.io :as io]
-    [clojure.string :as str]))
+    [clojure.string :as str]
+    [deps-deploy.deps-deploy :as dd]))
 
 (defn mk-dep [g a v]
-  (xml/sexp-as-element
-    [(xml/qname "http://maven.apache.org/POM/4.0.0" "dependency")
-     [(xml/qname "http://maven.apache.org/POM/4.0.0" "groupId") g]
-     [(xml/qname "http://maven.apache.org/POM/4.0.0" "artifactId") a]
-     [(xml/qname "http://maven.apache.org/POM/4.0.0" "version") v]
-     [(xml/qname "http://maven.apache.org/POM/4.0.0" "scope") "provided"]]))
+  (let [pom-ns "http://maven.apache.org/POM/4.0.0"]
+    (xml/sexp-as-element
+      [(xml/qname pom-ns "dependency")
+       [(xml/qname pom-ns "groupId") g]
+       [(xml/qname pom-ns "artifactId") a]
+       [(xml/qname pom-ns "version") v]
+       [(xml/qname pom-ns "scope") "provided"]])))
 
 (def provided-deps
-  [(mk-dep "org.clojure" "clojure" "1.9.0")
-   (mk-dep "org.clojure" "clojurescript" "1.10.339")
-   (mk-dep "org.clojure" "test.check" "1.0.0")])
+  (let [deps-map (-> "deps.edn" slurp edn/read-string :aliases :provided :extra-deps)]
+    (mapv (fn [[k v]] (mk-dep (namespace k) (name k) (:mvn/version v)))
+      deps-map)))
 
 (defn read-xml-file [file]
   (with-open [rdr (io/reader file)]
@@ -45,11 +47,10 @@
         updated-pom-data (assoc pom-data :content updated-content)]
     updated-pom-data))
 
+;; not curently used, since the jar creation creates the necessary dir structure already before writing the updated pom.xml file
 (defn ensure-dirs-exist [file-path]
   (let [dir (io/file file-path)]
     (.mkdirs (.getParentFile dir))))
-
-
 (comment
   (insert-dependencies "pom-template.xml" provided-deps)
 
@@ -58,7 +59,7 @@
   )
 
 (def lib (quote space.matterandvoid/eql))
-(def version (str (str/replace (str (LocalDate/now)) "-" ".") "-SNAPSHOT2"))
+(def version (str (str/replace (str (LocalDate/now)) "-" ".")))
 (def class-dir "target/classes")
 
 (defn test "Run all the tests." [opts]
@@ -95,7 +96,6 @@
     :class-dir class-dir
     :target "target"
     :src-dirs ["src"]
-    ;:src-pom "pom-template.xml"
     :pom-data (pom-template version)))
 
 (defn ci "Run the CI pipeline of tests (and build the JAR)." [opts]

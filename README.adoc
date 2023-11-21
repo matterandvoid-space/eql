@@ -717,5 +717,8 @@ clojure -T:build test
 
 clojure -T:build ci
 
+git tag -a vYYYYMMDD -m "notes"
+git push --tags
+
 CLOJARS_USERNAME=$username CLOJARS_PASSWORD=$clojars_token clojure -T:build deploy
 ----
